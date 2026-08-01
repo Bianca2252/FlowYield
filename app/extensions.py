@@ -1,3 +1,13 @@
 """Central location for Flask extension instances."""
 
-# Flask extensions will be initialized here as they are introduced.
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+
+
+class Base(DeclarativeBase):
+    """Base class for all SQLAlchemy models."""
+
+
+db = SQLAlchemy(model_class=Base)
+migrate = Migrate()

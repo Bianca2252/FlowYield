@@ -49,3 +49,9 @@ dist/
 *.tmp
 *.temp
 ~$*
+
+# Local application data
+instance/
+*.db
+*.sqlite
+*.sqlite3

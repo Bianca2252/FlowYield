@@ -23,6 +23,7 @@ def create_app(config_name: str = "development") -> Flask:
 
     initialize_extensions(app)
     register_blueprints(app)
+    register_models()
 
     return app
 
@@ -38,3 +39,8 @@ def register_blueprints(app: Flask) -> None:
     from app.main import main_bp
 
     app.register_blueprint(main_bp)
+
+
+def register_models() -> None:
+    """Import models so migration tooling can discover them."""
+    from app import models  # noqa: F401

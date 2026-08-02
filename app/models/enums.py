@@ -44,3 +44,44 @@ class StepType(StrEnum):
     IT_REVIEW = "IT_REVIEW"
     FINANCE_APPROVAL = "FINANCE_APPROVAL"
     DIRECTOR_APPROVAL = "DIRECTOR_APPROVAL"
+
+
+class WorkflowCycleStatus(StrEnum):
+    """Define workflow cycle lifecycle states."""
+
+    ACTIVE = "ACTIVE"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    CHANGES_REQUESTED = "CHANGES_REQUESTED"
+    SUPERSEDED = "SUPERSEDED"
+    CANCELLED = "CANCELLED"
+
+
+class WorkflowStepStatus(StrEnum):
+    """Define workflow step lifecycle states."""
+
+    PENDING = "PENDING"
+    ACTIVE = "ACTIVE"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    CHANGES_REQUESTED = "CHANGES_REQUESTED"
+    SKIPPED = "SKIPPED"
+    CANCELLED = "CANCELLED"
+
+
+class DecisionType(StrEnum):
+    """Define authoritative workflow decision values."""
+
+    APPROVE = "APPROVE"
+    REJECT = "REJECT"
+    RETURN_FOR_CHANGES = "RETURN_FOR_CHANGES"
+
+
+class SLAResult(StrEnum):
+    """Define active and completed SLA interpretations."""
+
+    ON_TIME = "ON_TIME"
+    APPROACHING_DEADLINE = "APPROACHING_DEADLINE"
+    OVERDUE = "OVERDUE"
+    COMPLETED_ON_TIME = "COMPLETED_ON_TIME"
+    COMPLETED_LATE = "COMPLETED_LATE"

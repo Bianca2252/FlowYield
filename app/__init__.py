@@ -25,6 +25,7 @@ def create_app(config_name: str = "development") -> Flask:
     register_blueprints(app)
     register_models()
     register_errors(app)
+    register_commands(app)
 
     return app
 
@@ -77,6 +78,13 @@ def register_errors(app: Flask) -> None:
     from app.errors import register_error_handlers
 
     register_error_handlers(app)
+
+
+def register_commands(app: Flask) -> None:
+    """Register application CLI commands."""
+    from app.commands import register_commands as register_cli_commands
+
+    register_cli_commands(app)
 
 
 from app.models import User  # noqa: E402

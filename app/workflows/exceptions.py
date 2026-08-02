@@ -31,3 +31,11 @@ class InvalidApproverRoleError(ApproverAssignmentError):
 
 class SelfApprovalError(ApproverAssignmentError):
     """Raised when a requester would approve their own request."""
+
+
+class RequestValidationError(WorkflowError, ValueError):
+    """Raised when a purchase request is incomplete or invalid."""
+
+
+class InvalidTransitionError(WorkflowError, ValueError):
+    """Raised when the request cannot enter the requested state."""

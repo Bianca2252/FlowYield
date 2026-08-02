@@ -24,6 +24,7 @@ def create_app(config_name: str = "development") -> Flask:
     initialize_extensions(app)
     register_blueprints(app)
     register_models()
+    register_errors(app)
 
     return app
 
@@ -55,9 +56,11 @@ def initialize_extensions(app: Flask) -> None:
 
 def register_blueprints(app: Flask) -> None:
     """Register application Blueprints."""
+    from app.admin import admin_bp
     from app.auth import auth_bp
     from app.main import main_bp
 
+    app.register_blueprint(admin_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
@@ -65,6 +68,13 @@ def register_blueprints(app: Flask) -> None:
 def register_models() -> None:
     """Import models so migration tooling can discover them."""
     from app import models  # noqa: F401
+
+
+def register_errors(app: Flask) -> None:
+    """Register application error handlers."""
+    from app.errors import register_error_handlers
+
+    register_error_handlers(app)
 
 
 from app.models import User  # noqa: E402

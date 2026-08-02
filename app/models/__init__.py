@@ -1,7 +1,12 @@
 """FlowYield database models."""
 
 from app.models.department import Department
-from app.models.enums import CommentType, RequestCategory, RequestStatus
+from app.models.enums import (
+    CommentType,
+    RequestCategory,
+    RequestStatus,
+    StepType,
+)
 from app.models.purchase_request import (
     PurchaseRequest,
     RequestComment,
@@ -9,6 +14,10 @@ from app.models.purchase_request import (
 )
 from app.models.role import Role, UserRole
 from app.models.user import User
+from app.models.workflow_configuration import (
+    StepConfiguration,
+    WorkflowConfiguration,
+)
 
 __all__ = [
     "CommentType",
@@ -19,6 +28,9 @@ __all__ = [
     "RequestRevision",
     "RequestStatus",
     "Role",
+    "StepConfiguration",
+    "StepType",
     "User",
     "UserRole",
+    "WorkflowConfiguration",
 ]

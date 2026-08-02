@@ -35,3 +35,12 @@ class CommentType(StrEnum):
     REQUESTER_RESPONSE = "REQUESTER_RESPONSE"
     APPROVER_NOTE = "APPROVER_NOTE"
     SYSTEM_NOTE = "SYSTEM_NOTE"
+
+
+class StepType(StrEnum):
+    """Define supported workflow approval step types."""
+
+    MANAGER_APPROVAL = "MANAGER_APPROVAL"
+    IT_REVIEW = "IT_REVIEW"
+    FINANCE_APPROVAL = "FINANCE_APPROVAL"
+    DIRECTOR_APPROVAL = "DIRECTOR_APPROVAL"

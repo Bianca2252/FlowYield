@@ -13,9 +13,17 @@ from sqlalchemy import select
 
 from app.authorization import RoleName, roles_required
 from app.extensions import db
-from app.models import PurchaseRequest, RequestStatus
+from app.models import (
+    PurchaseRequest,
+    RequestStatus,
+    WorkflowCycle,
+    WorkflowStep,
+)
 from app.requests import requests_bp
-from app.requests.forms import PurchaseRequestDraftForm
+from app.requests.forms import (
+    PurchaseRequestDraftForm,
+    PurchaseRequestSubmissionForm,
+)
 from app.requests.policies import (
     can_cancel_request,
     can_edit_request,
@@ -26,6 +34,8 @@ from app.requests.services import (
     create_draft,
     update_draft,
 )
+from app.workflows.exceptions import WorkflowError
+from app.workflows.submission_service import submit_purchase_request
 
 
 def get_owned_request_or_404(
@@ -62,6 +72,36 @@ def populate_form_from_request(
     form.expected_purchase_date.data = purchase_request.expected_purchase_date
 
 
+def get_latest_workflow_cycle(
+    purchase_request: PurchaseRequest,
+) -> WorkflowCycle | None:
+    """Return the latest workflow cycle for a purchase request."""
+    query = (
+        select(WorkflowCycle)
+        .where(WorkflowCycle.purchase_request_id == purchase_request.id)
+        .order_by(WorkflowCycle.cycle_number.desc())
+        .limit(1)
+    )
+
+    return db.session.scalar(query)
+
+
+def get_ordered_workflow_steps(
+    workflow_cycle: WorkflowCycle | None,
+) -> list[WorkflowStep]:
+    """Return workflow steps in execution order."""
+    if workflow_cycle is None:
+        return []
+
+    query = (
+        select(WorkflowStep)
+        .where(WorkflowStep.workflow_cycle_id == workflow_cycle.id)
+        .order_by(WorkflowStep.sequence_number)
+    )
+
+    return list(db.session.scalars(query).all())
+
+
 @requests_bp.get("/")
 @roles_required(RoleName.REQUESTER)
 def list_requests():
@@ -72,7 +112,14 @@ def list_requests():
         .order_by(PurchaseRequest.created_at.desc())
     )
 
-    status_value = request.args.get("status", "").strip().upper()
+    status_value = (
+        request.args.get(
+            "status",
+            "",
+        )
+        .strip()
+        .upper()
+    )
 
     if status_value:
         try:
@@ -92,7 +139,10 @@ def list_requests():
     )
 
 
-@requests_bp.route("/new", methods=["GET", "POST"])
+@requests_bp.route(
+    "/new",
+    methods=["GET", "POST"],
+)
 @roles_required(RoleName.REQUESTER)
 def create_request():
     """Create a new purchase request draft."""
@@ -128,9 +178,17 @@ def view_request(request_id: int):
     """Display one purchase request owned by the current user."""
     purchase_request = get_owned_request_or_404(request_id)
 
+    latest_workflow_cycle = get_latest_workflow_cycle(purchase_request)
+    workflow_steps = get_ordered_workflow_steps(latest_workflow_cycle)
+
+    submission_form = PurchaseRequestSubmissionForm()
+
     return render_template(
         "requests/detail.html",
         purchase_request=purchase_request,
+        submission_form=submission_form,
+        latest_workflow_cycle=latest_workflow_cycle,
+        workflow_steps=workflow_steps,
     )
 
 
@@ -143,7 +201,10 @@ def edit_request(request_id: int):
     """Edit an owned purchase request draft."""
     purchase_request = get_owned_request_or_404(request_id)
 
-    if not can_edit_request(current_user, purchase_request):
+    if not can_edit_request(
+        current_user,
+        purchase_request,
+    ):
         abort(409)
 
     form = PurchaseRequestDraftForm()
@@ -179,13 +240,62 @@ def edit_request(request_id: int):
     )
 
 
+@requests_bp.post("/<int:request_id>/submit")
+@roles_required(RoleName.REQUESTER)
+def submit_request(request_id: int):
+    """Submit an owned purchase request for approval."""
+    purchase_request = get_owned_request_or_404(request_id)
+    form = PurchaseRequestSubmissionForm()
+
+    if not form.validate_on_submit():
+        abort(400)
+
+    try:
+        workflow_cycle = submit_purchase_request(
+            purchase_request=purchase_request,
+            requester=current_user,
+        )
+    except WorkflowError as error:
+        flash(
+            str(error),
+            "danger",
+        )
+
+        return redirect(
+            url_for(
+                "requests.view_request",
+                request_id=purchase_request.id,
+            )
+        )
+
+    flash(
+        (
+            f"Request {purchase_request.reference_number} "
+            f"was submitted successfully. "
+            f"Workflow cycle {workflow_cycle.cycle_number} "
+            "is now active."
+        ),
+        "success",
+    )
+
+    return redirect(
+        url_for(
+            "requests.view_request",
+            request_id=purchase_request.id,
+        )
+    )
+
+
 @requests_bp.post("/<int:request_id>/cancel")
 @roles_required(RoleName.REQUESTER)
 def cancel_request(request_id: int):
     """Cancel an owned purchase request draft."""
     purchase_request = get_owned_request_or_404(request_id)
 
-    if not can_cancel_request(current_user, purchase_request):
+    if not can_cancel_request(
+        current_user,
+        purchase_request,
+    ):
         abort(409)
 
     cancel_draft(purchase_request)

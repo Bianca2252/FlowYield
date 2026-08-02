@@ -14,6 +14,11 @@ from app.extensions import db
 
 if TYPE_CHECKING:
     from app.models.department import Department
+    from app.models.purchase_request import (
+        PurchaseRequest,
+        RequestComment,
+        RequestRevision,
+    )
     from app.models.role import UserRole
 
 
@@ -29,40 +34,59 @@ class User(UserMixin, db.Model):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+
     email: Mapped[str] = mapped_column(
         String(255),
         unique=True,
         nullable=False,
         index=True,
     )
-    first_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    last_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    first_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+
+    last_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+
+    password_hash: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
     is_active: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
         default=True,
     )
+
     department_id: Mapped[int] = mapped_column(
         ForeignKey("departments.id"),
         nullable=False,
         index=True,
     )
+
     manager_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         index=True,
     )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(UTC),
     )
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
+
     last_login_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
     )
@@ -70,23 +94,42 @@ class User(UserMixin, db.Model):
     department: Mapped[Department] = relationship(
         back_populates="users",
     )
+
     manager: Mapped[User | None] = relationship(
         remote_side="User.id",
         back_populates="direct_reports",
         foreign_keys=[manager_id],
     )
+
     direct_reports: Mapped[list[User]] = relationship(
         back_populates="manager",
         foreign_keys=[manager_id],
     )
+
     role_assignments: Mapped[list[UserRole]] = relationship(
         foreign_keys="UserRole.user_id",
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
     role_assignments_created: Mapped[list[UserRole]] = relationship(
         foreign_keys="UserRole.assigned_by_user_id",
         back_populates="assigned_by",
+    )
+
+    purchase_requests: Mapped[list[PurchaseRequest]] = relationship(
+        foreign_keys="PurchaseRequest.requester_id",
+        back_populates="requester",
+    )
+
+    submitted_request_revisions: Mapped[list[RequestRevision]] = relationship(
+        foreign_keys="RequestRevision.submitted_by_user_id",
+        back_populates="submitted_by",
+    )
+
+    request_comments: Mapped[list[RequestComment]] = relationship(
+        foreign_keys="RequestComment.author_id",
+        back_populates="author",
     )
 
     @property
@@ -108,7 +151,10 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password: str) -> bool:
         """Check a plain-text password against the stored hash."""
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(
+            self.password_hash,
+            password,
+        )
 
     def has_role(self, role_name: str) -> bool:
         """Return whether the user holds the requested role."""

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Edit request | FlowYield{% endblock %}
+
+{% block content %}
+<section>
+    <h1>Edit {{ purchase_request.reference_number }}</h1>
+    <p>The request remains a draft until it is submitted.</p>
+
+    {% include "requests/form.html" %}
+</section>
+{% endblock %}

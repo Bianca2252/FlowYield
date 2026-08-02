@@ -1,0 +1,60 @@
+<form method="post" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div>
+        {{ form.title.label }}
+        {{ form.title() }}
+
+        {% for error in form.title.errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+
+    <div>
+        {{ form.description.label }}
+        {{ form.description() }}
+    </div>
+
+    <div>
+        {{ form.business_justification.label }}
+        {{ form.business_justification() }}
+    </div>
+
+    <div>
+        {{ form.category.label }}
+        {{ form.category() }}
+    </div>
+
+    <div>
+        {{ form.supplier.label }}
+        {{ form.supplier() }}
+
+        {% for error in form.supplier.errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+
+    <div>
+        {{ form.requested_amount.label }}
+        {{ form.requested_amount(step="0.01", min="0.01") }}
+
+        {% for error in form.requested_amount.errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+
+    <div>
+        {{ form.expected_purchase_date.label }}
+        {{ form.expected_purchase_date() }}
+
+        {% for error in form.expected_purchase_date.errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+
+    {{ form.submit() }}
+</form>
+
+<a href="{{ url_for('requests.list_requests') }}">
+    Return to requests
+</a>

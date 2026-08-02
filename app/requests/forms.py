@@ -78,3 +78,9 @@ class PurchaseRequestDraftForm(FlaskForm):
     )
 
     submit = SubmitField("Save draft")
+
+
+class PurchaseRequestSubmissionForm(FlaskForm):
+    """Confirm submission of a completed purchase request."""
+
+    submit = SubmitField("Submit request")

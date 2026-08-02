@@ -10,8 +10,9 @@
         </h1>
 
         <p>{{ purchase_request.reference_number }}</p>
+
         <p>
-            Status:
+            <strong>Status:</strong>
             {{
                 purchase_request.status.value
                 .replace("_", " ")
@@ -20,9 +21,18 @@
         </p>
     </header>
 
+    <hr>
+
+    <h2>Request information</h2>
+
     <dl>
         <dt>Description</dt>
-        <dd>{{ purchase_request.description or "Not provided" }}</dd>
+        <dd>
+            {{
+                purchase_request.description
+                or "Not provided"
+            }}
+        </dd>
 
         <dt>Business justification</dt>
         <dd>
@@ -46,7 +56,12 @@
         </dd>
 
         <dt>Supplier</dt>
-        <dd>{{ purchase_request.supplier or "Not provided" }}</dd>
+        <dd>
+            {{
+                purchase_request.supplier
+                or "Not provided"
+            }}
+        </dd>
 
         <dt>Requested amount</dt>
         <dd>
@@ -68,18 +83,63 @@
                 or "Not provided"
             }}
         </dd>
+
+        <dt>Current revision</dt>
+        <dd>
+            {{
+                purchase_request.current_revision_number
+            }}
+        </dd>
+
+        <dt>Submitted at</dt>
+        <dd>
+            {% if purchase_request.submitted_at %}
+                {{
+                    purchase_request.submitted_at
+                    .strftime("%Y-%m-%d %H:%M UTC")
+                }}
+            {% else %}
+                Not submitted
+            {% endif %}
+        </dd>
     </dl>
 
-    {% if purchase_request.status.value == "DRAFT" %}
+    {% if purchase_request.status.value in [
+        "DRAFT",
+        "CHANGES_REQUESTED"
+    ] %}
+        <hr>
+
+        <h2>Request actions</h2>
+
+        <p>
+            Complete all required information before submitting the
+            request for approval.
+        </p>
+
         <a
             href="{{ url_for(
                 'requests.edit_request',
                 request_id=purchase_request.id
             ) }}"
         >
-            Edit draft
+            Edit request
         </a>
 
+        <form
+            method="post"
+            action="{{ url_for(
+                'requests.submit_request',
+                request_id=purchase_request.id
+            ) }}"
+        >
+            {{ submission_form.hidden_tag() }}
+
+            {{ submission_form.submit() }}
+        </form>
+    {% endif %}
+
+    {% if purchase_request.status.value == "DRAFT" %}
         <form
             method="post"
             action="{{ url_for(
@@ -93,9 +153,132 @@
                 value="{{ csrf_token() }}"
             >
 
-            <button type="submit">Cancel draft</button>
+            <button type="submit">
+                Cancel draft
+            </button>
         </form>
     {% endif %}
+
+    {% if latest_workflow_cycle %}
+        <hr>
+
+        <section>
+            <h2>Approval workflow</h2>
+
+            <p>
+                <strong>Cycle:</strong>
+                {{ latest_workflow_cycle.cycle_number }}
+            </p>
+
+            <p>
+                <strong>Cycle status:</strong>
+                {{
+                    latest_workflow_cycle.status.value
+                    .replace("_", " ")
+                    .title()
+                }}
+            </p>
+
+            <ol>
+                {% for workflow_step in workflow_steps %}
+                    <li>
+                        <article>
+                            <h3>
+                                {{
+                                    workflow_step.step_type.value
+                                    .replace("_", " ")
+                                    .title()
+                                }}
+                            </h3>
+
+                            <p>
+                                <strong>Status:</strong>
+                                {{
+                                    workflow_step.status.value
+                                    .replace("_", " ")
+                                    .title()
+                                }}
+                            </p>
+
+                            <p>
+                                <strong>Assigned to:</strong>
+
+                                {% if workflow_step.assigned_user %}
+                                    {{
+                                        workflow_step
+                                        .assigned_user
+                                        .first_name
+                                    }}
+                                    {{
+                                        workflow_step
+                                        .assigned_user
+                                        .last_name
+                                    }}
+                                {% else %}
+                                    Not assigned
+                                {% endif %}
+                            </p>
+
+                            <p>
+                                <strong>Required role:</strong>
+                                {{
+                                    workflow_step
+                                    .required_role_name
+                                    .replace("_", " ")
+                                    .title()
+                                }}
+                            </p>
+
+                            <p>
+                                <strong>Reason:</strong>
+                                {{
+                                    workflow_step
+                                    .reason_for_inclusion
+                                }}
+                            </p>
+
+                            <p>
+                                <strong>SLA:</strong>
+                                {{
+                                    workflow_step
+                                    .sla_duration_hours
+                                }}
+                                hours
+                            </p>
+
+                            {% if workflow_step.activated_at %}
+                                <p>
+                                    <strong>Activated:</strong>
+                                    {{
+                                        workflow_step
+                                        .activated_at
+                                        .strftime(
+                                            "%Y-%m-%d %H:%M UTC"
+                                        )
+                                    }}
+                                </p>
+                            {% endif %}
+
+                            {% if workflow_step.deadline_at %}
+                                <p>
+                                    <strong>Deadline:</strong>
+                                    {{
+                                        workflow_step
+                                        .deadline_at
+                                        .strftime(
+                                            "%Y-%m-%d %H:%M UTC"
+                                        )
+                                    }}
+                                </p>
+                            {% endif %}
+                        </article>
+                    </li>
+                {% endfor %}
+            </ol>
+        </section>
+    {% endif %}
+
+    <hr>
 
     <a href="{{ url_for('requests.list_requests') }}">
         Return to requests

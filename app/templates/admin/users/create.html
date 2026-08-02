@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Create user | FlowYield{% endblock %}
+
+{% block content %}
+<section>
+    <header>
+        <h1>Create user</h1>
+        <p>
+            Create an employee account and assign organizational access.
+        </p>
+    </header>
+
+    <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div>
+            {{ form.email.label }}
+            {{ form.email(autocomplete="email") }}
+
+            {% for error in form.email.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            {{ form.first_name.label }}
+            {{ form.first_name(autocomplete="given-name") }}
+
+            {% for error in form.first_name.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            {{ form.last_name.label }}
+            {{ form.last_name(autocomplete="family-name") }}
+
+            {% for error in form.last_name.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            {{ form.password.label }}
+            {{ form.password(autocomplete="new-password") }}
+
+            {% for error in form.password.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            {{ form.department_id.label }}
+            {{ form.department_id() }}
+
+            {% for error in form.department_id.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            {{ form.manager_id.label }}
+            {{ form.manager_id() }}
+
+            {% for error in form.manager_id.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            {{ form.role_ids.label }}
+            {{ form.role_ids(size=8) }}
+
+            {% for error in form.role_ids.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            {{ form.is_active() }}
+            {{ form.is_active.label }}
+        </div>
+
+        {{ form.submit() }}
+    </form>
+
+    <a href="{{ url_for('admin.list_users') }}">
+        Return to users
+    </a>
+</section>
+{% endblock %}

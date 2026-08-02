@@ -74,7 +74,7 @@ def test_administrator_can_access_admin_area(
     client: FlaskClient,
     active_user: User,
 ) -> None:
-    """A user with the Administrator role should receive access."""
+    """An Administrator should be redirected to user administration."""
     assign_role(
         app,
         active_user,
@@ -84,12 +84,8 @@ def test_administrator_can_access_admin_area(
 
     response = client.get("/admin/")
 
-    assert response.status_code == 200
-    assert response.get_json() == {
-        "area": "administration",
-        "status": "authorized",
-        "user": active_user.email,
-    }
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/admin/users")
 
 
 def test_unrelated_role_cannot_access_admin_area(

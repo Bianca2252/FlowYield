@@ -39,3 +39,15 @@ class RequestValidationError(WorkflowError, ValueError):
 
 class InvalidTransitionError(WorkflowError, ValueError):
     """Raised when the request cannot enter the requested state."""
+
+
+class ApprovalDecisionError(WorkflowError, ValueError):
+    """Raised when an approval decision cannot be recorded."""
+
+
+class UnauthorizedDecisionError(ApprovalDecisionError):
+    """Raised when a user cannot decide the requested workflow step."""
+
+
+class DecisionCommentRequiredError(ApprovalDecisionError):
+    """Raised when a negative decision has no explanation."""

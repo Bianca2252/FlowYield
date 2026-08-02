@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Create request | FlowYield{% endblock %}
+
+{% block content %}
+<section>
+    <h1>Create purchase request</h1>
+    <p>
+        You may save an incomplete request and finish it later.
+    </p>
+
+    {% include "requests/form.html" %}
+</section>
+{% endblock %}

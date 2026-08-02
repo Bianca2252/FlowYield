@@ -59,10 +59,12 @@ def register_blueprints(app: Flask) -> None:
     from app.admin import admin_bp
     from app.auth import auth_bp
     from app.main import main_bp
+    from app.requests import requests_bp
 
     app.register_blueprint(admin_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
+    app.register_blueprint(requests_bp)
 
 
 def register_models() -> None:

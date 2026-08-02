@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Approval inbox | FlowYield{% endblock %}
+
+{% block content %}
+<section>
+    <header>
+        <h1>Approval inbox</h1>
+
+        <p>
+            Review purchase approval tasks currently assigned to you.
+        </p>
+    </header>
+
+    {% if workflow_steps %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Request</th>
+                    <th>Title</th>
+                    <th>Step</th>
+                    <th>Amount</th>
+                    <th>Deadline</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for workflow_step in workflow_steps %}
+                    {% set purchase_request =
+                        workflow_step.workflow_cycle.purchase_request
+                    %}
+
+                    <tr>
+                        <td>
+                            {{ purchase_request.reference_number }}
+                        </td>
+
+                        <td>
+                            {{
+                                purchase_request.title
+                                or "Untitled request"
+                            }}
+                        </td>
+
+                        <td>
+                            {{
+                                workflow_step.step_type.value
+                                .replace("_", " ")
+                                .title()
+                            }}
+                        </td>
+
+                        <td>
+                            EUR {{
+                                "%.2f" | format(
+                                    purchase_request.requested_amount
+                                )
+                            }}
+                        </td>
+
+                        <td>
+                            {% if workflow_step.deadline_at %}
+                                {{
+                                    workflow_step.deadline_at
+                                    .strftime(
+                                        "%Y-%m-%d %H:%M UTC"
+                                    )
+                                }}
+                            {% else %}
+                                No deadline
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <a
+                                href="{{ url_for(
+                                    'approvals.view_task',
+                                    step_id=workflow_step.id
+                                ) }}"
+                            >
+                                Review
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>
+            You do not currently have any active approval tasks.
+        </p>
+    {% endif %}
+</section>
+{% endblock %}

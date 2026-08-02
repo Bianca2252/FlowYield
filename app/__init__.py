@@ -58,11 +58,13 @@ def initialize_extensions(app: Flask) -> None:
 def register_blueprints(app: Flask) -> None:
     """Register application Blueprints."""
     from app.admin import admin_bp
+    from app.approvals import approvals_bp
     from app.auth import auth_bp
     from app.main import main_bp
     from app.requests import requests_bp
 
     app.register_blueprint(admin_bp)
+    app.register_blueprint(approvals_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(requests_bp)

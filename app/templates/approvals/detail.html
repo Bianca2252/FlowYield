@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Review request | FlowYield{% endblock %}
+
+{% block content %}
+<section>
+    <header>
+        <h1>
+            {{
+                workflow_step.step_type.value
+                .replace("_", " ")
+                .title()
+            }}
+        </h1>
+
+        <p>
+            {{ purchase_request.reference_number }}
+        </p>
+
+        <p>
+            <strong>Task status:</strong>
+            {{
+                workflow_step.status.value
+                .replace("_", " ")
+                .title()
+            }}
+        </p>
+    </header>
+
+    <hr>
+
+    <h2>Purchase request</h2>
+
+    <dl>
+        <dt>Title</dt>
+        <dd>
+            {{
+                purchase_request.title
+                or "Untitled request"
+            }}
+        </dd>
+
+        <dt>Requester</dt>
+        <dd>
+            {{ purchase_request.requester.full_name }}
+        </dd>
+
+        <dt>Department</dt>
+        <dd>
+            {{ purchase_request.department.name }}
+        </dd>
+
+        <dt>Description</dt>
+        <dd>
+            {{
+                purchase_request.description
+                or "Not provided"
+            }}
+        </dd>
+
+        <dt>Business justification</dt>
+        <dd>
+            {{
+                purchase_request.business_justification
+                or "Not provided"
+            }}
+        </dd>
+
+        <dt>Category</dt>
+        <dd>
+            {{
+                purchase_request.category.value
+                .replace("_", " ")
+                .title()
+            }}
+        </dd>
+
+        <dt>Supplier</dt>
+        <dd>
+            {{
+                purchase_request.supplier
+                or "Not provided"
+            }}
+        </dd>
+
+        <dt>Requested amount</dt>
+        <dd>
+            EUR {{
+                "%.2f" | format(
+                    purchase_request.requested_amount
+                )
+            }}
+        </dd>
+
+        <dt>Expected purchase date</dt>
+        <dd>
+            {{
+                purchase_request.expected_purchase_date
+                or "Not provided"
+            }}
+        </dd>
+    </dl>
+
+    <hr>
+
+    <h2>Workflow task</h2>
+
+    <dl>
+        <dt>Reason for inclusion</dt>
+        <dd>
+            {{ workflow_step.reason_for_inclusion }}
+        </dd>
+
+        <dt>Required role</dt>
+        <dd>
+            {{
+                workflow_step.required_role_name
+                .replace("_", " ")
+                .title()
+            }}
+        </dd>
+
+        <dt>Activated at</dt>
+        <dd>
+            {% if workflow_step.activated_at %}
+                {{
+                    workflow_step.activated_at
+                    .strftime("%Y-%m-%d %H:%M UTC")
+                }}
+            {% else %}
+                Not activated
+            {% endif %}
+        </dd>
+
+        <dt>Deadline</dt>
+        <dd>
+            {% if workflow_step.deadline_at %}
+                {{
+                    workflow_step.deadline_at
+                    .strftime("%Y-%m-%d %H:%M UTC")
+                }}
+            {% else %}
+                No deadline
+            {% endif %}
+        </dd>
+
+        <dt>SLA duration</dt>
+        <dd>
+            {{ workflow_step.sla_duration_hours }} hours
+        </dd>
+    </dl>
+
+    {% if workflow_step.is_actionable %}
+        <hr>
+
+        <h2>Record decision</h2>
+
+        <p>
+            A comment is mandatory when rejecting or returning
+            a request for changes.
+        </p>
+
+        <form
+            method="post"
+            action="{{ url_for(
+                'approvals.decide_task',
+                step_id=workflow_step.id
+            ) }}"
+        >
+            {{ form.hidden_tag() }}
+
+            <div>
+                {{ form.decision.label }}
+                {{ form.decision() }}
+
+                {% for error in form.decision.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                {{ form.comment.label }}
+                {{ form.comment(rows=6) }}
+
+                {% for error in form.comment.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            {{ form.submit() }}
+        </form>
+    {% else %}
+        <p>
+            This workflow task is no longer actionable.
+        </p>
+    {% endif %}
+
+    <hr>
+
+    <a href="{{ url_for('approvals.inbox') }}">
+        Return to approval inbox
+    </a>
+</section>
+{% endblock %}

@@ -2,16 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1"
     >
+
     <title>{% block title %}FlowYield{% endblock %}</title>
 </head>
+
 <body>
-    {% with messages = get_flashed_messages(with_categories=true) %}
+    <header>
+        <nav aria-label="Main navigation">
+            <a href="{{ url_for('main.dashboard') }}">
+                FlowYield
+            </a>
+
+            {% if current_user.is_authenticated %}
+                {% if current_user.has_role("REQUESTER") %}
+                    <a href="{{ url_for('requests.list_requests') }}">
+                        My requests
+                    </a>
+                {% endif %}
+
+                {% if (
+                    current_user.has_role("MANAGER_APPROVER")
+                    or current_user.has_role("IT_REVIEWER")
+                    or current_user.has_role("FINANCE_APPROVER")
+                    or current_user.has_role("DIRECTOR_APPROVER")
+                ) %}
+                    <a href="{{ url_for('approvals.inbox') }}">
+                        Approval inbox
+                    </a>
+                {% endif %}
+
+                {% if current_user.has_role("ADMINISTRATOR") %}
+                    <a href="{{ url_for('admin.list_users') }}">
+                        User administration
+                    </a>
+                {% endif %}
+
+                <span>
+                    {{ current_user.full_name }}
+                </span>
+
+                <form
+                    method="post"
+                    action="{{ url_for('auth.logout') }}"
+                >
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}"
+                    >
+
+                    <button type="submit">
+                        Sign out
+                    </button>
+                </form>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}">
+                    Sign in
+                </a>
+            {% endif %}
+        </nav>
+    </header>
+
+    {% with messages =
+        get_flashed_messages(with_categories=true)
+    %}
         {% for category, message in messages %}
-            <div role="alert" data-category="{{ category }}">
+            <div
+                role="alert"
+                data-category="{{ category }}"
+            >
                 {{ message }}
             </div>
         {% endfor %}

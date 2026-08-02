@@ -11,3 +11,23 @@ class WorkflowConfigurationError(WorkflowError, ValueError):
 
 class ApprovalPathError(WorkflowError, ValueError):
     """Raised when an approval path cannot be generated."""
+
+
+class ApproverAssignmentError(WorkflowError, ValueError):
+    """Raised when an eligible approver cannot be assigned."""
+
+
+class MissingManagerError(ApproverAssignmentError):
+    """Raised when Manager Approval has no configured manager."""
+
+
+class InactiveApproverError(ApproverAssignmentError):
+    """Raised when a required approver is inactive."""
+
+
+class InvalidApproverRoleError(ApproverAssignmentError):
+    """Raised when an approver lacks the required role."""
+
+
+class SelfApprovalError(ApproverAssignmentError):
+    """Raised when a requester would approve their own request."""

@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from flask_login import UserMixin
 from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
     from app.models.role import UserRole
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     """Represent an application user and employee."""
 
     __tablename__ = "users"

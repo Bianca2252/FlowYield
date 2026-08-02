@@ -3,7 +3,7 @@
 from flask import Flask
 
 from app.config import CONFIG_MAP, INSTANCE_DIR
-from app.extensions import db, migrate
+from app.extensions import csrf, db, login_manager, migrate
 
 
 def create_app(config_name: str = "development") -> Flask:
@@ -32,15 +32,39 @@ def initialize_extensions(app: Flask) -> None:
     """Initialize Flask extensions."""
     db.init_app(app)
     migrate.init_app(app, db)
+    csrf.init_app(app)
+
+    login_manager.init_app(app)
+    login_manager.login_view = "auth.login"
+    login_manager.login_message = "Please sign in to access this page."
+    login_manager.login_message_category = "warning"
+
+    @login_manager.user_loader
+    def load_user(user_id: str):
+        """Load an active user from the authenticated session."""
+        try:
+            user = db.session.get(User, int(user_id))
+        except TypeError, ValueError:
+            return None
+
+        if user is None or not user.is_active:
+            return None
+
+        return user
 
 
 def register_blueprints(app: Flask) -> None:
     """Register application Blueprints."""
+    from app.auth import auth_bp
     from app.main import main_bp
 
+    app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
 
 def register_models() -> None:
     """Import models so migration tooling can discover them."""
     from app import models  # noqa: F401
+
+
+from app.models import User  # noqa: E402

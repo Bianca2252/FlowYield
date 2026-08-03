@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | FlowYield{% endblock %}
+
+{% block content %}
+<section>
+    <header>
+        <h1>Dashboard</h1>
+
+        <p>
+            Welcome back, {{ current_user.first_name }}.
+        </p>
+    </header>
+
+    {% if requester_metrics %}
+        <section>
+            <h2>My purchase requests</h2>
+
+            <div>
+                <article>
+                    <h3>Total</h3>
+                    <p>{{ requester_metrics.total }}</p>
+                </article>
+
+                <article>
+                    <h3>Draft</h3>
+                    <p>{{ requester_metrics.draft }}</p>
+                </article>
+
+                <article>
+                    <h3>In review</h3>
+                    <p>{{ requester_metrics.in_review }}</p>
+                </article>
+
+                <article>
+                    <h3>Changes requested</h3>
+                    <p>{{ requester_metrics.changes_requested }}</p>
+                </article>
+
+                <article>
+                    <h3>Approved</h3>
+                    <p>{{ requester_metrics.approved }}</p>
+                </article>
+
+                <article>
+                    <h3>Rejected</h3>
+                    <p>{{ requester_metrics.rejected }}</p>
+                </article>
+            </div>
+
+            <p>
+                <a href="{{ url_for('requests.list_requests') }}">
+                    View all requests
+                </a>
+
+                <a href="{{ url_for('requests.create_request') }}">
+                    Create request
+                </a>
+            </p>
+        </section>
+    {% endif %}
+
+    {% if approval_metrics %}
+        <section>
+            <h2>Approval workload</h2>
+
+            <div>
+                <article>
+                    <h3>Active tasks</h3>
+                    <p>{{ approval_metrics.active }}</p>
+                </article>
+
+                <article>
+                    <h3>Overdue tasks</h3>
+                    <p>{{ approval_metrics.overdue }}</p>
+                </article>
+
+                <article>
+                    <h3>Completed tasks</h3>
+                    <p>{{ approval_metrics.completed }}</p>
+                </article>
+            </div>
+
+            <p>
+                <a href="{{ url_for('approvals.inbox') }}">
+                    Open approval inbox
+                </a>
+            </p>
+        </section>
+    {% endif %}
+
+    {% if recent_requests %}
+        <section>
+            <h2>Recent requests</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Reference</th>
+                        <th>Title</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for purchase_request in recent_requests %}
+                        <tr>
+                            <td>
+                                {{ purchase_request.reference_number }}
+                            </td>
+
+                            <td>
+                                {{
+                                    purchase_request.title
+                                    or "Untitled request"
+                                }}
+                            </td>
+
+                            <td>
+                                {% if purchase_request.requested_amount %}
+                                    EUR {{
+                                        "%.2f" | format(
+                                            purchase_request
+                                            .requested_amount
+                                        )
+                                    }}
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {{
+                                    purchase_request.status.value
+                                    .replace("_", " ")
+                                    .title()
+                                }}
+                            </td>
+
+                            <td>
+                                <a
+                                    href="{{ url_for(
+                                        'requests.view_request',
+                                        request_id=purchase_request.id
+                                    ) }}"
+                                >
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    {% endif %}
+
+    {% if active_approval_tasks %}
+        <section>
+            <h2>My active approval tasks</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Request</th>
+                        <th>Step</th>
+                        <th>Amount</th>
+                        <th>Deadline</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for workflow_step in active_approval_tasks %}
+                        {% set purchase_request =
+                            workflow_step.workflow_cycle.purchase_request
+                        %}
+
+                        <tr>
+                            <td>
+                                {{
+                                    purchase_request.title
+                                    or purchase_request.reference_number
+                                }}
+                            </td>
+
+                            <td>
+                                {{
+                                    workflow_step.step_type.value
+                                    .replace("_", " ")
+                                    .title()
+                                }}
+                            </td>
+
+                            <td>
+                                EUR {{
+                                    "%.2f" | format(
+                                        purchase_request.requested_amount
+                                    )
+                                }}
+                            </td>
+
+                            <td>
+                                {% if workflow_step.deadline_at %}
+                                    {{
+                                        workflow_step.deadline_at
+                                        .strftime(
+                                            "%Y-%m-%d %H:%M UTC"
+                                        )
+                                    }}
+                                {% else %}
+                                    No deadline
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <a
+                                    href="{{ url_for(
+                                        'approvals.view_task',
+                                        step_id=workflow_step.id
+                                    ) }}"
+                                >
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    {% endif %}
+
+    {% if (
+        not requester_metrics
+        and not approval_metrics
+        and not recent_requests
+        and not active_approval_tasks
+    ) %}
+        <p>
+            No dashboard information is available for your current role.
+        </p>
+    {% endif %}
+</section>
+{% endblock %}

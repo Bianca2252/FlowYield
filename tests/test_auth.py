@@ -43,7 +43,7 @@ def test_authenticated_user_can_access_dashboard(
     client: FlaskClient,
     active_user: User,
 ) -> None:
-    """An authenticated user should access the protected dashboard."""
+    """An authenticated user should access the HTML dashboard."""
     client.post(
         "/auth/login",
         data={
@@ -55,11 +55,8 @@ def test_authenticated_user_can_access_dashboard(
     response = client.get("/dashboard")
 
     assert response.status_code == 200
-    assert response.get_json() == {
-        "application": "FlowYield",
-        "user": active_user.email,
-        "status": "authenticated",
-    }
+    assert b"Dashboard" in response.data
+    assert active_user.first_name.encode() in response.data
 
 
 def test_invalid_password_is_rejected(

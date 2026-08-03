@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}FlowYield{% endblock %}
+
+{% block content %}
+<section>
+    <header>
+        <h1>FlowYield</h1>
+
+        <p>
+            Business workflow automation and approval intelligence
+            for modern operations teams.
+        </p>
+    </header>
+
+    {% if authenticated %}
+        <p>You are signed in.</p>
+
+        <a href="{{ url_for('main.dashboard') }}">
+            Open dashboard
+        </a>
+    {% else %}
+        <p>
+            Sign in to manage purchase requests and approval tasks.
+        </p>
+
+        <a href="{{ url_for('auth.login') }}">
+            Sign in
+        </a>
+    {% endif %}
+</section>
+{% endblock %}

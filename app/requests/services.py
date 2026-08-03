@@ -12,6 +12,11 @@ from app.models import (
 )
 from app.requests.forms import PurchaseRequestDraftForm
 
+EDITABLE_REQUEST_STATUSES = {
+    RequestStatus.DRAFT,
+    RequestStatus.CHANGES_REQUESTED,
+}
+
 
 def optional_text(value: str | None) -> str | None:
     """Normalize optional text input."""
@@ -56,7 +61,10 @@ def create_draft(
         status=RequestStatus.DRAFT,
     )
 
-    apply_draft_form(purchase_request, form)
+    apply_draft_form(
+        purchase_request,
+        form,
+    )
 
     db.session.add(purchase_request)
     db.session.commit()
@@ -68,11 +76,14 @@ def update_draft(
     purchase_request: PurchaseRequest,
     form: PurchaseRequestDraftForm,
 ) -> PurchaseRequest:
-    """Update and persist an existing purchase request draft."""
-    if purchase_request.status != RequestStatus.DRAFT:
-        raise ValueError("Only draft requests may be edited.")
+    """Update and persist an editable purchase request."""
+    if purchase_request.status not in EDITABLE_REQUEST_STATUSES:
+        raise ValueError("Only draft or returned requests may be edited.")
 
-    apply_draft_form(purchase_request, form)
+    apply_draft_form(
+        purchase_request,
+        form,
+    )
     db.session.commit()
 
     return purchase_request

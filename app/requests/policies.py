@@ -16,10 +16,10 @@ def can_edit_request(
     purchase_request: PurchaseRequest,
 ) -> bool:
     """Return whether a user may edit a purchase request."""
-    return (
-        purchase_request.requester_id == user.id
-        and purchase_request.status == RequestStatus.DRAFT
-    )
+    return purchase_request.requester_id == user.id and purchase_request.status in {
+        RequestStatus.DRAFT,
+        RequestStatus.CHANGES_REQUESTED,
+    }
 
 
 def can_cancel_request(
